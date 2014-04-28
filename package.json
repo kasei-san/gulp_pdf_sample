@@ -1,0 +1,14 @@
+{
+  "name": "gulp_pdf_sample",
+  "version": "0.0.0",
+  "description": "",
+  "dependencies": {
+    "gulp": "^3.6.2"
+  },
+  "license": "WTFPL",
+  "devDependencies": {
+    "gulp-clean": "^0.2.4",
+    "gulp-markdown": "^0.1.2",
+    "gulp-markdown-pdf": "^0.2.0"
+  }
+}

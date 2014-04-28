@@ -1,0 +1,204 @@
+<h1 id="makefile-">Makefileことはじめ</h1>
+<p>Makefile について理解が足りてないのでメモ
+Ruby の C 拡張をいじるに当たって、避けて通れないので、ここいらで把握する</p>
+<h2 id="make-">make って何?</h2>
+<pre><code>make(メイク) は、プログラムのビルド作業を自動化するツール。
+コンパイル、リンク、インストール等のルールを記述したテキストファイル (Makefile) に従って、これらの作業を自動的に行う。
+複雑に関連し合ったファイルの依存関係を解決するのが make の長所である。
+</code></pre><p><a href="http://ja.wikipedia.org/wiki/Make">make - Wikipedia</a></p>
+<h2 id="-">サンプルコード</h2>
+<pre><code class="lang-test.c">#include &lt;stdio.h&gt;
+
+void test(){
+  printf(&quot;test&quot;);
+}
+
+int main(){
+  test();
+}
+</code></pre>
+<h3 id="-">ビルド、動作確認</h3>
+<pre><code>$ gcc test.cp
+$ ./a.out
+test
+</code></pre><h2 id="makefile-">Makefile を作ってみる</h2>
+<pre><code class="lang-mf:Makefile">test: test.o
+</code></pre>
+<pre><code>$ make
+cc    -c -o test.o test.c
+cc   test.o   -o test
+$ ./test
+test
+</code></pre><ul>
+<li>cc は、gcc のエイリアス</li>
+<li>-c オプションは、リンカを起動しないオプション</li>
+</ul>
+<p>既にある実行ファイルや、オブジェクトファイルは生成しない
+もっかい make を実行すると、</p>
+<pre><code>make: `test&#39; is up to date.
+</code></pre><p>と、言われて何もしない</p>
+<h3 id="-">リンカ?</h3>
+<pre><code>リンケージエディタ（リンカ(linker)、連係編集プログラムとも）とは
+機械語のプログラムの断片を結合し実行可能なプログラムを作成するプログラムのことである。
+例として、C言語では、ソースファイルをコンパイルするとオブジェクトファイルが生成される。
+それに他のオブジェクトファイルやライブラリを結合して1つのプログラムが完成する。
+この結合（リンクという）の際リンケージエディタが使われる。
+</code></pre><p><a href="http://ja.wikipedia.org/wiki/%E3%83%AA%E3%83%B3%E3%82%B1%E3%83%BC%E3%82%B8%E3%82%A8%E3%83%87%E3%82%A3%E3%82%BF">リンケージエディタ - Wikipedia</a></p>
+<p>上記だと、</p>
+<ul>
+<li>まずは test.c のオブジェクトファイル test.o を生成</li>
+<li>リンカを使って、test.o から、実行可能ファイル test を生成している</li>
+</ul>
+<h2 id="makefile-">Makefileの解説</h2>
+<h3 id="-makefile-">基本的な Makefileのフォーマット</h3>
+<pre><code>ターゲット(作りたいファイル名): 依存ファイル, 依存ファイル...
+  コマンド
+  コマンド
+  ...
+</code></pre><pre><code class="lang-mf:Makefile">test: test.o
+</code></pre>
+<h3 id="-">ルール</h3>
+<p>上記の場合、test というターゲット(実行可能ファイル) を作るのに、test.o が依存しているよ! と書いている
+このひとかたまりを <strong>ルール</strong> と呼ぶ</p>
+<h3 id="-">ターゲット</h3>
+<pre><code>$ make ${ターゲット名}
+</code></pre><p>Makefile のターゲットのルールを実行する
+デフォルトは、Makefileの一番上のターゲットのルールを実行する
+なので、今回の場合、make コマンドを実行すると、test ターゲットのルールが実行される</p>
+<h3 id="-">コマンド</h3>
+<p>ターゲット実行時に、実行されるコマンドを書く
+省略した場合、暗黙のルール(後述)に従ったコマンドが実行される
+コマンドと行頭の間の空白は <strong>かならず tab であること</strong></p>
+<h3 id="make-">make の処理の流れ</h3>
+<p>make は上記の Makefile を読んで、以下の様な処理を行う</p>
+<ol>
+<li>実行ファイル test を生成するのに、test.o が必要と理解</li>
+<li>test.o は、test.c からコンパイルされるはずと考えて、test.c をリンカなしでコンパイル</li>
+<li>test.o を使って、実行ファイル test を生成</li>
+</ol>
+<h3 id="-">暗黙のルール</h3>
+<p>上ように、make は、コンパイラとかソースコードの場所を示したルールやコマンドを書かなくても、大体適当にやってくれる
+この慣習的に、適当にやってくれるルールを <strong>「暗黙のルール」</strong> と言う</p>
+<ul>
+<li><a href="http://www.ecoop.net/coop/translated/GNUMake3.77/make_10.jp.html">GNU make 日本語訳(Coop編) - 暗黙ルールの利用</a></li>
+</ul>
+<h2 id="make-clean-">make clean の実装</h2>
+<p>Makefileには、慣習としていくつかのターゲットが存在すべきらしい
+make clean とか、make install とか</p>
+<ul>
+<li><a href="http://www.ecoop.net/coop/translated/GNUMake3.77/make_14.jp.html#SEC117">GNU make 日本語訳(Coop編) - 慣習的なMekifile#ユーザーのための標準ターゲット</a></li>
+</ul>
+<p>いろいろあるけど、試しに clean を実装してみる</p>
+<pre><code>`clean&#39;
+    　全ファイルを(普通はプログラムのビルド時に作った)カレントディレクトリから削除します。
+</code></pre><pre><code class="lang-mf:Makefile">test: test.o
+clean:
+    rm test test.o
+</code></pre>
+<p>単純に、make で生成される実行ファイルと、オブジェクトコードを削除する</p>
+<pre><code>$ make clean
+rm test test.o
+</code></pre><h3 id="-">エラー無視オプション</h3>
+<p>例えばこんな Makefile
+削除をしてから、何かしらの処理を行いたい場合</p>
+<pre><code class="lang-mf:Makefile">test: test.o
+clean:
+    rm test test.o
+    echo &quot;test&quot; # 削除の後のなんらかの処理
+</code></pre>
+<p>だけど、例えば test.o がない場合、echo &quot;test&quot; は実行されない</p>
+<pre><code>$ make clean
+rm test test.o
+rm: test.o: No such file or directory
+make: *** [clean] Error 1
+</code></pre><p>make clean の場合、とにかくファイルを消すことが目的なので、全てのファイルが存在しなくても、消せるやつだけ消せれば良い
+そういう時に、No such file or directory でエラーが発生して、処理が途中で止まっても困る</p>
+<p><strong>コマンドの前に &quot;-&quot; を入れることで、その行でエラーが発生しても、正常終了したと見なしてくれる</strong></p>
+<pre><code class="lang-mf:Makefile">test: test.o
+clean:
+    -rm test test.o
+    echo &quot;test&quot; # 削除の後のなんらかの処理
+</code></pre>
+<p>こうすると、echo &quot;test&quot; が実行される</p>
+<pre><code>make clean
+rm test test.o
+rm: test.o: No such file or directory
+make: [clean] Error 1 (ignored)
+echo &quot;test&quot;
+test
+</code></pre><h3 id="-">擬似ターゲット</h3>
+<p>ターゲットは、基本的にターゲット名と同名のファイルを生成する処理
+なので、make は、ターゲットと同名のファイルが既にあると(依存関係がある時以外は)処理を行わない</p>
+<p>なので、 <strong>clean というファイルがあると、make clean は実行されない!</strong></p>
+<pre><code>$ touch clean
+$ make clean
+make: `clean&#39; is up to date.
+</code></pre><p><code>.PHONY ${ターゲット名}</code> という記載で、そのターゲットは、ファイルは生成しないという事を make に知らせることができる</p>
+<pre><code class="lang-mf:Makefile">test: test.o
+.PHONY: clean
+clean:
+    -rm test test.o
+    echo &quot;test&quot; # 削除の後のなんらかの処理
+</code></pre>
+<h2 id="-make">依存関係のあるコードを make</h2>
+<pre><code class="lang-test.h">#ifndef __TEST_H__
+#define __TEST_H__
+void test();
+#endif
+</code></pre>
+<pre><code class="lang-test.c">#include &lt;stdio.h&gt;
+void test(){
+  printf(&quot;test&quot;);
+}
+</code></pre>
+<pre><code class="lang-main.c">#include &lt;test.h&gt;
+int main(){
+  test();
+}
+</code></pre>
+<h3 id="-">まずは、手動でコンパイル</h3>
+<p>test.c をコンパイルしてから、main.c をコンパイルする</p>
+<pre><code>$ gcc -c test.c -o test.o -I./
+$ cc -c main.c
+$ cc main.o test.o -o test
+</code></pre><h3 id="makefile-">Makefile を書いてみる</h3>
+<pre><code class="lang-mf:Makefile">test: test.o main.o # コードオブジェクトを順序依存に書く
+.PHONY: clean
+clean:
+    -rm test test.o main.o
+    echo &quot;test&quot; # 削除の後のなんらかの処理
+</code></pre>
+<h3 id="make">make</h3>
+<pre><code>$ make
+cc    -c -o test.o test.c
+test.c:1:18: error: test.h: No such file or directory
+make: *** [test.o] Error 1
+</code></pre><p>test.h が見つからないと怒られる</p>
+<h3 id="-">マクロ</h3>
+<p>カレントディレクトリを、インクルードパスとして -I オプションで追加する必要がある</p>
+<pre><code class="lang-mf:Makefile">CFLAGS=-I./
+test: test.o main.o # コードオブジェクトを順序依存に書く
+.PHONY: clean
+clean:
+    -rm test test.o main.o
+    echo &quot;test&quot; # 削除の後のなんらかの処理
+</code></pre>
+<p>無事成功</p>
+<pre><code>$ make
+cc -I./   -c -o test.o test.c
+cc -I./   -c -o main.o main.c
+cc   test.o main.o   -o test
+</code></pre><p>CFLAGSは、暗黙ルールの中で定義されている、Cコンパイル時に追加するオプションを格納する変数
+このような変数を <strong>マクロ</strong> と呼ぶ</p>
+<ul>
+<li>他にも色んなマクロがある → <a href="http://www.ecoop.net/coop/translated/GNUMake3.77/make_10.jp.html#SEC92">GNU make 日本語訳(Coop編) - 暗黙ルールの利用</a></li>
+</ul>
+<h2 id="-">参考</h2>
+<ul>
+<li><a href="http://linuxjm.sourceforge.jp/html/GNU_make/man1/make.1.html">Man page of MAKE</a></li>
+<li><a href="http://www.ecoop.net/coop/translated/GNUMake3.77/make_1.jp.html">GNU make 日本語訳(Coop編) - makeコマンドの概要</a></li>
+<li><a href="http://www.atmarkit.co.jp/ait/articles/1106/07/news131.html">仕事で使える魔法のLAMP（8）：makeを使ってソフトウェアをビルドしてみよう - ＠IT</a></li>
+<li><a href="http://docwiki.embarcadero.com/RADStudio/XE4/ja/MAKE_%E3%81%AE%E3%83%9E%E3%82%AF%E3%83%AD">MAKE のマクロ - RAD Studio</a></li>
+<li><a href="http://homepage3.nifty.com/kaku-chan/make/index.html">Make チュートリアル</a></li>
+<li><a href="http://objectclub.jp/community/memorial/homepage3.nifty.com/masarl/article/gnu-make.html">自動化のためのGNU Make入門講座</a></li>
+</ul>

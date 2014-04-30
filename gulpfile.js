@@ -2,6 +2,7 @@ var gulp        = require('gulp');
 var markdown    = require('gulp-markdown');
 var markdownpdf = require('gulp-markdown-pdf');
 var clean       = require('gulp-clean');
+var path        = require('path');
 
 // default task do clean, html and pdf task
 gulp.task('default', ['clean', 'html', 'pdf']);
@@ -16,7 +17,9 @@ gulp.task('html', function () {
 // markdown to pdf
 gulp.task('pdf', function () {
   return gulp.src('intro.md')
-    .pipe(markdownpdf())
+    .pipe(markdownpdf({
+       runningsPath : path.resolve('markdown-pdf/runnings.js')
+      }))
     .pipe(gulp.dest('dist/pdf'));
 });
 
